@@ -1,0 +1,12 @@
+{
+  "name": "RSol/RDB",
+  "description": "Yii extention for MySQL database",
+  "version": "0.1.1",
+  "type": "library",
+  "require": {
+	"yiisoft/yii": ">=1.1.1, <2"
+  },
+  "autoload": {
+	"classmap"  : ["RDbCommand.php", "RDbConnection.php"]
+  }
+}

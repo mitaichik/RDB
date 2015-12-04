@@ -33,10 +33,11 @@ class RDbCommand extends CDbCommand
 	 * The method will properly escape the column names, and bind the values to be inserted.
 	 * @param string $table the table that new rows will be inserted into.
 	 * @param array $columns the column data (name=>value) to be inserted into the table
-	 *			 or array(array(name=>value),array(name=>value)).
+	 *             or array(array(name=>value),array(name=>value)).
 	 * @param array $update the column data (name=>value) to be update
 	 * @param string $ignore '' or 'IGNORE'
-	 * @return integer number of rows affected by the execution.
+	 * @return int number of rows affected by the execution.
+	 * @throws CDbException
 	 */
 	public function insertUpdate($table, $columns, $update=array(), $ignore='')
 	{
@@ -44,18 +45,18 @@ class RDbCommand extends CDbCommand
 		{
 			throw new CDbException(Yii::t('ext.RDbCommand', 'Table name should be a valid string.'));
 		}
-		
+
 		if(!$columns || !is_array($columns))
 		{
 			throw new CDbException(Yii::t('ext.RDbCommand', 'Columns should be a valid one demention array.'));
 		}
-		
+
 		list($names, $placeholders, $params) = $this->_insert($columns);
 
 		$sql="INSERT {$ignore} INTO " . $this->getConnection()->quoteTableName($table)
 			. ' (' . implode(', ',$names) . ') VALUES '
 			. implode(', ', $placeholders);
-		
+
 		list($lines, $params) =  $this->_updatePrepare($update, $params);
 		if($lines)
 		{
@@ -92,6 +93,8 @@ class RDbCommand extends CDbCommand
 	/**
 	 * Prepare $names, $placeholders, $params
 	 * @param array $columns
+	 * @param string $iterat
+	 * @param array $params
 	 * @return array array($names, $placeholders, $params)
 	 */
 	protected function _insertPrepare($columns, $iterat='', $params=array())
@@ -121,6 +124,7 @@ class RDbCommand extends CDbCommand
 	/**
 	 * Prepare $lines, $params
 	 * @param array $columns
+	 * @param array $params
 	 * @return array array($lines, $params)
 	 */
 	protected function _updatePrepare($columns, $params=array())
@@ -130,13 +134,13 @@ class RDbCommand extends CDbCommand
 		{
 			if($value instanceof CDbExpression)
 			{
-				$lines[]=$this->_connection->quoteColumnName($name) . '=' . $value->expression;
+				$lines[]=$this->getConnection()->quoteColumnName($name) . '=' . $value->expression;
 				foreach($value->params as $n => $v)
 					$params[$n] = $v;
 			}
 			else
 			{
-				$lines[]=$this->_connection->quoteColumnName($name) . '=:' . $name;
+				$lines[]=$this->getConnection()->quoteColumnName($name) . '=:' . $name;
 				$params[$this->_paramName(':' . $name, $params)]=$value;
 			}
 		}
